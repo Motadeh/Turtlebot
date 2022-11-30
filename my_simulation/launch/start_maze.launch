@@ -1,0 +1,7 @@
+<launch>
+<!-- My Package launch file -->
+<node pkg="my_simulation" type="maze.py" name="MazeSolverNode" output="screen">
+</node>
+
+
+</launch>
