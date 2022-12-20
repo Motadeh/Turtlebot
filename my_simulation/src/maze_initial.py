@@ -95,7 +95,7 @@ class MazeSolver:
                     self.goToGoal([2,-7], actMinLaserValue)
                 elif(self.goal > 2):
                     # self.goToGoal([0,-1], actMinLaserValue)
-                    # rospy.loginfo(self.driveState)
+                    rospy.loginfo(self.driveState)
                     # self.driveState = "WallDetection"
                     if(self.driveState == "moveForward"):
                         self.vel.linear.x = 0.0
@@ -152,7 +152,7 @@ class MazeSolver:
 
         turn = math.atan2(math.sin(angle_to_goal-theta), math.cos(angle_to_goal-theta))
 
-        # rospy.loginfo(dist)
+        rospy.loginfo(dist)
 
         if(actMinLaserValue < self.distanceToWall):
             self.knownPoints.append([self.odom.pose.pose.position.x, self.odom.pose.pose.position.y, rospy.Time.now().to_sec()])
@@ -163,52 +163,32 @@ class MazeSolver:
             pidValue = self.pid.pidExecute(self.distanceToWall, self.laser.ranges[self.laserIndex])
 
             if abs(angle_to_goal - theta) < 0.1:
-                if 0.1 * dist > 0.1 and 0.1 * dist < 0.3:
-                    self.vel.linear.x = 0.05 * dist
-                elif 0.1 * dist > 0.3:
-                    self.vel.linear.x = 0.25
-                else:
-                    self.vel.angular.z = 0.0
-                    rospy.loginfo('Goal ${self.goal} reached')
-                    self.goal += 1
+                self.move_forward = True
 
-            else:
+            if(pidValue == 0):
                 self.vel.angular.z = 0.2 * turn
-                # if self.move_forward == True:
-                if 0.1 * dist > 0.1 and 0.1 * dist < 0.3:
-                    self.vel.linear.x = 0.05 * dist
-                elif 0.1 * dist > 0.3:
-                    self.vel.linear.x = 0.25
-                else:
-                    self.vel.angular.z = 0.0
-                    rospy.loginfo('Goal ${self.goal} reached')
-                    self.knownPoints = []
-                    self.goal += 1
-
-            # if(pidValue == 0):
-            #     self.vel.angular.z = 0.2 * turn
-            #     if self.move_forward == True:
-            #         if 0.1 * dist > 0.1 and 0.1 * dist < 0.3:
-            #             self.vel.linear.x = 0.5 * dist
-            #         elif 0.1 * dist > 0.3:
-            #             self.vel.linear.x = 0.7
-            #         else:
-            #             self.vel.angular.z = 0.0
-            #             rospy.loginfo('a ti dey')
-            #             self.goal += 1
-            # elif(pidValue != 0):
-            #     self.vel.angular.z = pidValue
-            #     if self.move_forward == True:
-            #         if 0.1 * dist > 0.1 and 0.1 * dist < 0.3:
-            #             self.vel.linear.x = 0.05 * dist
-            #         elif 0.1 * dist > 0.3:
-            #             self.vel.linear.x = 0.25
-            #         else:
-            #             self.vel.angular.z = 0.0
-            #             self.vel.linear.x = 0.0
-            #             self.velPub.publish(self.vel)
-            #             rospy.loginfo('a ti dey')
-            #             self.goal += 1
+                if self.move_forward == True:
+                    if 0.1 * dist > 0.1 and 0.1 * dist < 0.3:
+                        self.vel.linear.x = 0.5 * dist
+                    elif 0.1 * dist > 0.3:
+                        self.vel.linear.x = 0.7
+                    else:
+                        self.vel.angular.z = 0.0
+                        rospy.loginfo('a ti dey')
+                        self.goal += 1
+            elif(pidValue != 0):
+                self.vel.angular.z = pidValue
+                if self.move_forward == True:
+                    if 0.1 * dist > 0.1 and 0.1 * dist < 0.3:
+                        self.vel.linear.x = 0.05 * dist
+                    elif 0.1 * dist > 0.3:
+                        self.vel.linear.x = 0.25
+                    else:
+                        self.vel.angular.z = 0.0
+                        self.vel.linear.x = 0.0
+                        self.velPub.publish(self.vel)
+                        rospy.loginfo('a ti dey')
+                        self.goal += 1
 
             for i in range(0, len(self.knownPoints)):
                 if(self.odom.pose.pose.position.x - self.epsilonAroundPoints <= self.knownPoints[i][0] <= self.odom.pose.pose.position.x + self.epsilonAroundPoints and
@@ -219,7 +199,7 @@ class MazeSolver:
                     self.driveState = "redirect"
                     
         elif(self.driveState == "redirect"):
-            # rospy.loginfo('its here')
+            rospy.loginfo('its here')
             self.turnSpeed *= -1
             
             self.vel.linear.x = 0.3
@@ -255,17 +235,17 @@ class MazeSolver:
                         if(k == len(self.laser.ranges) - 1):
                             i = len(self.laser.ranges)
                 
-                # rospy.loginfo(arrValues)
+                rospy.loginfo(arrValues)
 
                 # turn the robot to the wall (use the wall with the max distance to the robot)
                 getLaserIndex = 180;
                 if(arrValues):
-                    # rospy.loginfo(int(math.floor((max(arrValues)[1] + max(arrValues)[2]) / 2)))
+                    rospy.loginfo(int(math.floor((max(arrValues)[1] + max(arrValues)[2]) / 2)))
                     getLaserIndex = int(math.floor((max(arrValues)[1] + max(arrValues)[2]) / 2))
                 if(getLaserIndex <= 175 or getLaserIndex >= 185):
                     tmpAngle = self.laser.angle_min + (getLaserIndex * self.laser.angle_increment)
-                    # rospy.loginfo(self.laser.angle_min)
-                    # rospy.loginfo(self.laser.angle_increment)
+                    rospy.loginfo(self.laser.angle_min)
+                    rospy.loginfo(self.laser.angle_increment)
                     if(getLaserIndex < 170): # rotation to the right
                         self.rotate_angle(abs(tmpAngle), -0.3)
                     else:   # rotation to the left
@@ -292,12 +272,12 @@ class MazeSolver:
         elif(pidValue != 0):
             if(self.laser.ranges[359] <= self.distanceToWall):
 
-                # rospy.loginfo('test')
+                rospy.loginfo('test')
                 self.vel.linear.x = 0.3
                 self.vel.angular.z = 0.0
 
             else:
-                self.vel.linear.x = 0.25
+                self.vel.linear.x = 0.35
                 self.vel.angular.z = -pidValue
             # rospy.loginfo(self.laser.ranges[719])
             # if((self.laser.ranges[719] or self.laser.ranges[359] or self.laser.ranges[0]) <= self.distanceToWall):
